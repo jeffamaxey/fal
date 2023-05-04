@@ -98,25 +98,24 @@ class DbtTest(_DbtNode):
 
     @classmethod
     def init(cls, node):
-        if node.resource_type == NodeType.Test:
-            if isinstance(node, ParsedGenericTestNode):
-                test = DbtGenericTest(node=node)
-            elif isinstance(node, ParsedSingularTestNode):
-                test = DbtSingularTest(node=node)
-            else:
-                raise ValueError(f"Unexpected test class {node.__class__.__name__}")
-
-            for dep in test.node.depends_on.nodes:
-                if dep.startswith("model."):
-                    test.model_ids.append(dep)
-                if dep.startswith("source."):
-                    test.source_ids.append(dep)
-
-            return test
-        else:
+        if node.resource_type != NodeType.Test:
             raise TypeError(
                 f"Initialized DbtTest with node of type {node.resource_type}"
             )
+        if isinstance(node, ParsedGenericTestNode):
+            test = DbtGenericTest(node=node)
+        elif isinstance(node, ParsedSingularTestNode):
+            test = DbtSingularTest(node=node)
+        else:
+            raise ValueError(f"Unexpected test class {node.__class__.__name__}")
+
+        for dep in test.node.depends_on.nodes:
+            if dep.startswith("model."):
+                test.model_ids.append(dep)
+            if dep.startswith("source."):
+                test.source_ids.append(dep)
+
+        return test
 
 
 @dataclass
@@ -255,13 +254,16 @@ class DbtModel(_DbtTestableNode):
             return []
 
         raw_hooks = keyword_dict.get(hook_type) or []
-        if not isinstance(raw_hooks, list):
-            return []
-
-        return [
-            create_hook(raw_hook, default_environment_name=self.environment_name)
-            for raw_hook in raw_hooks
-        ]
+        return (
+            [
+                create_hook(
+                    raw_hook, default_environment_name=self.environment_name
+                )
+                for raw_hook in raw_hooks
+            ]
+            if isinstance(raw_hooks, list)
+            else []
+        )
 
     get_pre_hook_paths = partialmethod(_get_hooks, hook_type="pre-hook")
     get_post_hook_paths = partialmethod(_get_hooks, hook_type="post-hook")
@@ -279,11 +281,7 @@ class DbtModel(_DbtTestableNode):
             return []
 
         if isinstance(scripts_node, list):
-            if before:
-                return []
-            else:
-                return scripts_node
-
+            return [] if before else scripts_node
         if not isinstance(scripts_node, dict):
             return []
 
@@ -305,10 +303,7 @@ class DbtRunResult:
 
     @property
     def results(self) -> Sequence[RunResultOutput]:
-        if self.nativeRunResult:
-            return self.nativeRunResult.results
-        else:
-            return []
+        return self.nativeRunResult.results if self.nativeRunResult else []
 
 
 @dataclass
@@ -317,10 +312,7 @@ class DbtFreshnessExecutionResult:
 
     @property
     def results(self) -> Sequence[FreshnessNodeOutput]:
-        if self._artifact:
-            return self._artifact.results
-        else:
-            return []
+        return self._artifact.results if self._artifact else []
 
 
 @dataclass
@@ -358,8 +350,7 @@ class DbtManifest:
         for node in self.get_test_nodes():
             test: DbtTest = DbtTest.init(node=node)
 
-            result = results_map.get(node.unique_id)
-            if result:
+            if result := results_map.get(node.unique_id):
                 test.status = result.status.value
 
             tests.append(test)
@@ -378,8 +369,7 @@ class DbtManifest:
                 python_model=generated_models.get(node.name),
             )
 
-            result = results_map.get(node.unique_id)
-            if result:
+            if result := results_map.get(node.unique_id):
                 model.status = result.status.value
                 model.adapter_response = result.adapter_response
 
@@ -395,8 +385,7 @@ class DbtManifest:
                 freshness=source_freshness_map.get(node.unique_id),
             )
 
-            result = results_map.get(node.unique_id)
-            if result:
+            if result := results_map.get(node.unique_id):
                 source.status = result.status.value
 
             sources.append(source)
@@ -554,11 +543,7 @@ class FalDbt:
         """
         List model ids available for `ref` usage, formatting like `[ref_name, ...]`
         """
-        res = {}
-        for model in self.models:
-            res[model.unique_id] = model.status
-
-        return res
+        return {model.unique_id: model.status for model in self.models}
 
     @telemetry.log_call("list_models")
     def list_models(self) -> List[DbtModel]:
@@ -888,16 +873,11 @@ class FalDbt:
 
 
 def _firestore_dict_to_document(data: Dict, key_column: str):
-    output = {}
-    for (k, v) in data.items():
-        if k == key_column:
-            continue
-        # TODO: Add more type conversions here
-        if isinstance(v, Decimal):
-            output[k] = str(v)
-        else:
-            output[k] = v
-    return output
+    return {
+        k: str(v) if isinstance(v, Decimal) else v
+        for k, v in data.items()
+        if k != key_column
+    }
 
 
 def _get_custom_target(run_results: DbtRunResult):

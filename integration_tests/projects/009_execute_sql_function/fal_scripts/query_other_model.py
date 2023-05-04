@@ -10,11 +10,10 @@ df.info(buf=buf, memory_usage=False)
 info = buf.getvalue()
 output = f"\nModel dataframe information:\n{info}"
 temp_dir = os.environ["temp_dir"]
-write_dir = open(
+with open(
     reduce(
         os.path.join, [temp_dir, context.current_model.name + ".query_other_model.txt"]
     ),
     "w",
-)
-write_dir.write(output)
-write_dir.close()
+) as write_dir:
+    write_dir.write(output)

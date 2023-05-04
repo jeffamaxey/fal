@@ -90,8 +90,9 @@ def _run_scripts(args: argparse.Namespace, scripts: List[FalScript], faldbt: Fal
     failed_tasks: List[FalLocalHookTask] = [
         group.task for group in scheduler.filter_groups(Status.FAILURE)
     ]  # type: ignore
-    failed_script_ids = [task.build_fal_script(faldbt).id for task in failed_tasks]
-    if failed_script_ids:
+    if failed_script_ids := [
+        task.build_fal_script(faldbt).id for task in failed_tasks
+    ]:
         raise RuntimeError(f"Error in scripts {str.join(', ',failed_script_ids)}")
 
 
@@ -117,14 +118,11 @@ def _select_scripts(
 
     for model in models:
         model_scripts = model.get_scripts(args.keyword, before=bool(args.before))
-        for path in model_scripts:
-            if not scripts_flag:
-                # run all scripts when no --script is passed
-                scripts.append(FalScript(faldbt, model, path))
-            elif path in args.scripts:
-                # if --script selector is there only run selected scripts
-                scripts.append(FalScript(faldbt, model, path))
-
+        scripts.extend(
+            FalScript(faldbt, model, path)
+            for path in model_scripts
+            if not scripts_flag or path in args.scripts
+        )
     return scripts
 
 

@@ -108,12 +108,15 @@ def test_flow_run_with_defer(capfd):
     with ProjectTemporaryDirectory() as tmp_dir:
         captured = _run_fal(
             [
-                # fmt: off
-                "flow", "run",
-                "--project-dir", tmp_dir,
-                "--profiles-dir", profiles_dir,
-                "--defer", "--state", (tmp_dir + "/target")
-                # fmt: on
+                "flow",
+                "run",
+                "--project-dir",
+                tmp_dir,
+                "--profiles-dir",
+                profiles_dir,
+                "--defer",
+                "--state",
+                f"{tmp_dir}/target",
             ],
             capfd,
         )

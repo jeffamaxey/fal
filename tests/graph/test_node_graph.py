@@ -66,7 +66,7 @@ def test_empty_fal_dbt(fal_dbt_class):
     fal_dbt_instance.list_models = MagicMock(return_value=[])
     node_graph = NodeGraph.from_fal_dbt(fal_dbt_instance)
 
-    assert list(node_graph.node_lookup.keys()) == []
+    assert not list(node_graph.node_lookup.keys())
 
 
 @patch("dbt.contracts.graph.parsed.ParsedModelNode")

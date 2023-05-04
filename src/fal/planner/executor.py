@@ -43,17 +43,15 @@ def _collect_nodes(groups: List[TaskGroup], fal_dbt: FalDbt) -> Iterator[str]:
 
 
 def _show_failed_groups(scheduler: Scheduler, fal_dbt: FalDbt) -> None:
-    failed_nodes = list(
+    if failed_nodes := list(
         _collect_nodes(scheduler.filter_groups(Status.FAILURE), fal_dbt)
-    )
-    if failed_nodes:
+    ):
         message = ", ".join(failed_nodes)
         logger.info("Failed calculating the following nodes: {}", message)
 
-    skipped_nodes = list(
+    if skipped_nodes := list(
         _collect_nodes(scheduler.filter_groups(Status.SKIPPED), fal_dbt)
-    )
-    if skipped_nodes:
+    ):
         message = ", ".join(skipped_nodes)
         logger.info("Skipped calculating the following nodes: {}", message)
 
@@ -94,16 +92,9 @@ class FutureGroup:
         if self.futures:
             return None
 
-        if self.state is State.PRE_HOOKS:
-            # If there are no tasks left and the previous group was pre-hooks,
-            # we'll decide based on the exit status (success => move to the main task,
-            # failure => run the post-hooks and then exit).
-            if self.status == SUCCESS:
-                self.switch_to(State.MAIN_TASK)
-            else:
-                self.switch_to(State.POST_HOOKS)
-        elif self.state is State.MAIN_TASK:
-            # If we just executed the main task, then we'll proceed to the post-hooks
+        if self.state is State.PRE_HOOKS and self.status == SUCCESS:
+            self.switch_to(State.MAIN_TASK)
+        elif self.state is State.PRE_HOOKS or self.state is State.MAIN_TASK:
             self.switch_to(State.POST_HOOKS)
         else:
             # If we just executed post-hooks and there are no more tasks left,

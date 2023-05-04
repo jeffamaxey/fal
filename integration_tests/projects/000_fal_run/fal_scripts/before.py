@@ -16,6 +16,5 @@ info = buf.getvalue()
 output = output + f"\nModel dataframe information:\n{info}"
 temp_dir = os.environ["temp_dir"]
 print(temp_dir)
-write_dir = open(reduce(os.path.join, [temp_dir, model_name + ".before.txt"]), "w")
-write_dir.write(output)
-write_dir.close()
+with open(reduce(os.path.join, [temp_dir, model_name + ".before.txt"]), "w") as write_dir:
+    write_dir.write(output)

@@ -15,9 +15,8 @@ df = df.astype({"my_int_times_ten": int})
 
 output = f"\nModel dataframe first row:\n{df.iloc[0]}"
 temp_dir = os.environ["temp_dir"]
-write_dir = open(
+with open(
     reduce(os.path.join, [temp_dir, context.current_model.name + ".run_macro.txt"]),
     "w",
-)
-write_dir.write(output)
-write_dir.close()
+) as write_dir:
+    write_dir.write(output)

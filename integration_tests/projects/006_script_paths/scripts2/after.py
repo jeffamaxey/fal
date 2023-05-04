@@ -7,9 +7,8 @@ import io
 def write_data(data, model_name):
     temp_dir = os.environ["temp_dir"]
 
-    write_dir = open(reduce(os.path.join, [temp_dir, model_name + ".after2.txt"]), "w")
-    write_dir.write(data)
-    write_dir.close()
+    with open(reduce(os.path.join, [temp_dir, model_name + ".after2.txt"]), "w") as write_dir:
+        write_dir.write(data)
 
 
 def process_data(context, ref):

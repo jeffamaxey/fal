@@ -18,7 +18,7 @@ def test_get_dbt_command_list_with_select():
             "modelA",
             "modelB",
             "--project-dir",
-            str(os.getcwd()),
+            os.getcwd(),
         ],
     )
 
@@ -28,12 +28,5 @@ def test_get_dbt_command_list_with_empty_models_list():
     models = []
     command_list = get_dbt_command_list(parsed, models)
     assert_contains_only(
-        command_list,
-        [
-            "run",
-            "--threads",
-            "1",
-            "--project-dir",
-            str(os.getcwd()),
-        ],
+        command_list, ["run", "--threads", "1", "--project-dir", os.getcwd()]
     )

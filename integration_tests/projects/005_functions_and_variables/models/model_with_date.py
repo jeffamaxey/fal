@@ -28,7 +28,7 @@ df.info()
 
 # HACK: Snowflake returns without the time zone information
 df["my_datetime"] = df["my_datetime"].apply(
-    lambda d: d.tz_localize("UTC") if not d.tz else d
+    lambda d: d if d.tz else d.tz_localize("UTC")
 )
 output = f"my_datetime: {df['my_datetime'][0].isoformat()}"
 output += f"\nmy_date: {df['my_date'][0].isoformat()}"

@@ -49,8 +49,7 @@ def _cli(argv: List[str]):
             if parsed.flow_command == "run":
                 _warn_deprecated_flags(parsed)
 
-                exit_code = fal_flow_run(parsed)
-                if exit_code:
+                if exit_code := fal_flow_run(parsed):
                     raise SystemExit(exit_code)
 
         elif parsed.command == "run":
@@ -78,6 +77,6 @@ def _warn_deprecated_flags(parsed: argparse.Namespace):
         # NOTE: take the number of threads to use from the experimental_threads
         if parsed.threads:
             dbt.exceptions.warn(
-                f"WARNING: Overwriting `--threads` value with `--experimental-threads` value"
+                "WARNING: Overwriting `--threads` value with `--experimental-threads` value"
             )
         parsed.threads = parsed.experimental_threads

@@ -75,10 +75,11 @@ def get_el_configs(
 ) -> Dict[str, Dict]:
     path = os.path.join(profiles_dir, "profiles.yml")
     yml = load_yaml(path)
-    sync_configs = (
-        yml.get(profile_name, {}).get("fal_extract_load", {}).get(target_name, {})
+    return (
+        yml.get(profile_name, {})
+        .get("fal_extract_load", {})
+        .get(target_name, {})
     )
-    return sync_configs
 
 
 def get_scripts_dir(project_dir: str, args_vars: str) -> str:
@@ -158,19 +159,18 @@ def get_global_script_configs(source_dirs: List[Path]) -> Dict[str, List[str]]:
         schema_files = glob.glob(os.path.join(source_dir, "**.yml"), recursive=True)
         for file in schema_files:
             schema_yml = load_yaml(file)
-            if schema_yml is not None:
-                fal_config = schema_yml.get("fal", None)
-                if fal_config is not None:
-                    # sometimes `scripts` can *be* there and still be None
-                    script_paths = fal_config.get("scripts") or []
-                    if isinstance(script_paths, list):
-                        global_scripts["after"] += script_paths
-                    else:
-                        global_scripts["before"] += script_paths.get("before") or []
-                        global_scripts["after"] += script_paths.get("after") or []
-            else:
-                raise FalParseError("Error parsing the schema file " + file)
+            if schema_yml is None:
+                raise FalParseError(f"Error parsing the schema file {file}")
 
+            fal_config = schema_yml.get("fal", None)
+            if fal_config is not None:
+                # sometimes `scripts` can *be* there and still be None
+                script_paths = fal_config.get("scripts") or []
+                if isinstance(script_paths, list):
+                    global_scripts["after"] += script_paths
+                else:
+                    global_scripts["before"] += script_paths.get("before") or []
+                    global_scripts["after"] += script_paths.get("after") or []
     return global_scripts
 
 

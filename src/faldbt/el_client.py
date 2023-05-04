@@ -74,9 +74,9 @@ class FalElClient:
         if config_type not in [el.name for el in ELConfigTypes]:
             raise Exception(f"EL configuration type {config_type} is not supported.")
 
-        connection_key = CONNECTION_KEYS[config_type]
-
         if connection_id is None:
+            connection_key = CONNECTION_KEYS[config_type]
+
             connections = el_config[connection_key]
             connection = next(
                 (c for c in connections if c["name"] == connection_name), None

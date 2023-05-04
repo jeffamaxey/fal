@@ -32,7 +32,7 @@ class AirbyteClient:
 
     def __post_init__(self):
         """Set variables."""
-        self._base_url = self.host + "/api/v1"
+        self._base_url = f"{self.host}/api/v1"
 
     def request(self, endpoint: str, data: Optional[Dict[str, Any]]):
         """Make a request to Airbyte REST API endpoint."""

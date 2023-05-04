@@ -56,7 +56,7 @@ class Status(Enum):
 def _unique_id_to_model_name(unique_id: str) -> str:
     split_list = unique_id.split(".")
     # if its a unique id 'model.fal_test.model_with_before_scripts'
-    return split_list[len(split_list) - 1]
+    return split_list[-1]
 
 
 def _unique_ids_to_model_names(id_list: List[str]) -> List[str]:
@@ -70,14 +70,14 @@ def _mark_dbt_nodes_status_and_response(
     adapter_response: Optional[dict] = None,
 ):
     for model in fal_dbt.models:
-        if dbt_node is not None:
-            if model.unique_id == dbt_node:
-                model.status = status
-
-                if adapter_response is not None:
-                    model.adapter_response = adapter_response
-        else:
+        if dbt_node is None:
             model.status = status
+
+        elif model.unique_id == dbt_node:
+            model.status = status
+
+            if adapter_response is not None:
+                model.adapter_response = adapter_response
 
 
 def _map_cli_output_model_results(

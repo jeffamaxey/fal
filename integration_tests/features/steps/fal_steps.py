@@ -40,14 +40,12 @@ def set_project_folder(context, project: str):
     if not project_path.exists() or not project_path.is_dir():
         extra = ""
         try:
-            # Try to find the correct option
-            match = re.match("^(\\d+)_", project)
-
-            if match:
-                project_number = match.group(1)
+            if match := re.match("^(\\d+)_", project):
+                project_number = match[1]
                 projects_dir = Path(__file__).parent.parent.parent / "projects"
-                found = [r.name for r in projects_dir.glob(project_number + "_*")]
-                if found:
+                if found := [
+                    r.name for r in projects_dir.glob(f"{project_number}_*")
+                ]:
                     extra = "Is it " + " or ".join(found) + " ?"
         finally:
             raise ValueError(f"Project {project} not found. {extra}")
@@ -118,28 +116,19 @@ def invoke_command(context):
 
 @then("it throws an exception {etype} with message '{msg}'")
 def invoke_command_error(context, etype: str, msg: str):
-    # TODO: Somehow capture logging and check the contents for exceptions
-
-    # from behave.log_capture import LoggingCapture
-    # from io import StringIO
-    # log_cap: LoggingCapture = context.log_capture
-    # out_cap: StringIO = context.stdout_capture
-    # err_cap: StringIO = context.stderr_capture
-
-    if context.exc:
-        _etype, exc, _tb = context.exc
-        if isinstance(exc, SystemExit):
-            if not exc.code:
-                # zero exit code
-                raise AssertionError("Should have thrown an exception")
-        else:
-            assert isinstance(
-                exc, eval(etype)
-            ), f"Invalid exception - expected {etype}, got {type(exc)}"
-            assert msg in str(exc), "Invalid message - expected " + msg
-    else:
+    if not context.exc:
         raise AssertionError("Should have thrown an exception")
 
+    _etype, exc, _tb = context.exc
+    if isinstance(exc, SystemExit):
+        if not exc.code:
+            # zero exit code
+            raise AssertionError("Should have thrown an exception")
+    else:
+        assert isinstance(
+            exc, eval(etype)
+        ), f"Invalid exception - expected {etype}, got {type(exc)}"
+        assert msg in str(exc), f"Invalid message - expected {msg}"
     # Clear the exception
     context.exc = None
 
@@ -169,8 +158,7 @@ def check_script_files_dont_exist(context):
     python_scripts = set(_get_fal_scripts(context))
     expected_scripts = set(map(_script_filename, context.table.headings))
 
-    unexpected_runs = expected_scripts & python_scripts
-    if unexpected_runs:
+    if unexpected_runs := expected_scripts & python_scripts:
         to_report = ", ".join(unexpected_runs)
         assert False, f"Script files {to_report} should NOT BE present"
 
@@ -204,15 +192,13 @@ def no_models_are_run(context):
             assert (
                 len(data["results"]) == 0
             ), f"results length is {len(data['results'])}"
-        else:
-            assert True
 
 
 @then("no scripts are run")
 def no_scripts_are_run(context):
     results = glob.glob(f"{context.temp_dir.name}/*.txt")
 
-    assert len(results) == 0
+    assert not results
 
 
 @then("the following models are calculated")
@@ -318,7 +304,7 @@ def _as_name(node):
     # format for scripts: script.<model>.<direction>.<script_name>
     if node.startswith("script."):
         _, model_name, _, script_name = node.split(".", 3)
-        return model_name + "." + script_name
+        return f"{model_name}.{script_name}"
     elif node.endswith(".txt"):
         return node.split(".")[-2]
     else:
@@ -328,7 +314,7 @@ def _as_name(node):
 def _script_filename(script: str, model_name: Optional[str] = None):
     script_name = script.replace(".ipynb", ".txt").replace(".py", ".txt")
     if model_name:
-        script_name = model_name + "." + script_name
+        script_name = f"{model_name}.{script_name}"
     return script_name
 
 
@@ -399,10 +385,10 @@ def _get_fal_results_file_name(context):
 
 
 def _set_profiles_dir(context) -> Path:
-    # TODO: Ideally this needs to change in just one place
-    available_profiles = ["postgres", "bigquery", "redshift", "snowflake", "duckdb"]
     if "profile" in context.config.userdata:
         profile = context.config.userdata["profile"]
+        # TODO: Ideally this needs to change in just one place
+        available_profiles = ["postgres", "bigquery", "redshift", "snowflake", "duckdb"]
         if profile not in available_profiles:
             raise Exception(f"Profile {profile} is not supported")
         raw_path = reduce(os.path.join, [os.getcwd(), "profiles", profile])

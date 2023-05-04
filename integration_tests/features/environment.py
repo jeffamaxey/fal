@@ -29,6 +29,6 @@ def after_scenario(context, scenario):
 
 
 def before_tag(context, tag):
-    if "TODO-logging" == tag:
+    if tag == "TODO-logging":
         # print here is not captured by behave
         print("WARN: should have thrown an exception (TODO-logging)")

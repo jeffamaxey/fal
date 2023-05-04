@@ -80,7 +80,7 @@ def get_dbt_command_list(args: argparse.Namespace, models_list: List[str]) -> Li
     if args.vars is not None and args.vars != "{}":
         command_list += ["--vars", args.vars]
 
-    if len(models_list) > 0:
+    if models_list:
         command_list += ["--select"] + models_list
 
     # Assure all command parts are str

@@ -17,15 +17,12 @@ def create_mock_model(
     before_script_paths=[],
 ) -> DbtModel:
     node = deepcopy(parsedNodeMockInstance)
-    node.unique_id = "model." + name
+    node.unique_id = f"model.{name}"
     node.name = name
     model = DbtModel(node)
 
     def script_calculations(keyword: str, before: bool = False):
-        if before:
-            return before_script_paths
-        else:
-            return script_paths
+        return before_script_paths if before else script_paths
 
     model.get_scripts = MagicMock(side_effect=script_calculations)
     model.get_depends_on_nodes = MagicMock(return_value=depends_on_models)

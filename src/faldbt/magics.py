@@ -38,17 +38,14 @@ def init_fal(line="", local_ns={}):
         "list_features": faldbt.list_features,
         "execute_sql": faldbt.execute_sql,
         "el": faldbt.el,
-    }
-
-    if args.get("default_model_name"):
-        fal_globals["write_to_model"] = partial(
+        "write_to_model": partial(
             faldbt.write_to_model,
             target_1=args.get("default_model_name"),
             target_2=None,
         )
-
-    else:
-        fal_globals["write_to_model"] = _raise_no_model_exception
+        if args.get("default_model_name")
+        else _raise_no_model_exception,
+    }
 
     local_ns.update(fal_globals)
 

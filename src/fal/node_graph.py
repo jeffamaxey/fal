@@ -148,13 +148,12 @@ class NodeGraph:
         assert levels >= 0
         if levels == 0:
             return []
-        else:
-            current: List[str] = list(self.graph.successors(id))
-            return reduce(
-                lambda acc, id: acc + self.get_successors(id, levels - 1),
-                current,
-                current,
-            )
+        current: List[str] = list(self.graph.successors(id))
+        return reduce(
+            lambda acc, id: acc + self.get_successors(id, levels - 1),
+            current,
+            current,
+        )
 
     def get_descendants(self, id: str) -> List[str]:
         return list(nx.descendants(self.graph, id))
@@ -163,13 +162,12 @@ class NodeGraph:
         assert levels >= 0
         if levels == 0:
             return []
-        else:
-            current: List[str] = list(self.graph.predecessors(id))
-            return reduce(
-                lambda acc, id: acc + self.get_predecessors(id, levels - 1),
-                current,
-                current,
-            )
+        current: List[str] = list(self.graph.predecessors(id))
+        return reduce(
+            lambda acc, id: acc + self.get_predecessors(id, levels - 1),
+            current,
+            current,
+        )
 
     def get_ancestors(self, id: str) -> List[str]:
         return list(nx.ancestors(self.graph, id))
@@ -187,9 +185,7 @@ class NodeGraph:
 
         def is_python_model(id: str):
             inode = self.get_node(id)
-            if isinstance(inode, DbtModelNode):
-                return inode.model.python_model
-            return False
+            return inode.model.python_model if isinstance(inode, DbtModelNode) else False
 
         def has_post_hooks(node_id: str):
             inode = self.get_node(node_id)

@@ -142,11 +142,7 @@ def check_dir_exist(input_location=None):
     """
     home_dir = get_home_dir()
 
-    if input_location:
-        p = Path(home_dir, input_location)
-    else:
-        p = Path(home_dir)
-
+    p = Path(home_dir, input_location) if input_location else Path(home_dir)
     p = p.expanduser()
 
     if not p.exists():
@@ -163,8 +159,7 @@ def check_uid():
     conf = read_conf_file(uid_path)  # file already exist due to version check
     if "uid" not in conf.keys():
         uid = str(uuid.uuid4())
-        res = write_conf_file(uid_path, {"uid": uid}, error=True)
-        if res:
+        if res := write_conf_file(uid_path, {"uid": uid}, error=True):
             return f"NO_UID {res}"
         else:
             return uid
@@ -204,8 +199,7 @@ def check_first_time_usage():
 def read_conf_file(conf_path):
     try:
         with conf_path.open("r") as file:
-            conf = yaml.safe_load(file)
-            return conf
+            return yaml.safe_load(file)
     except Exception as e:
         warnings.warn(f"Can't read config file {e}")
         return {}
@@ -227,11 +221,7 @@ def _get_telemetry_info():
     values according to the config file (True/False). In addition it checks
     for first time installation.
     """
-    # Check if telemetry is enabled, if not skip, else check for uid
-    telemetry_enabled = check_stats_enabled()
-
-    if telemetry_enabled:
-
+    if telemetry_enabled := check_stats_enabled():
         # Check first time install
         is_install = check_first_time_usage()
 

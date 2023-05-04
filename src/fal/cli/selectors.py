@@ -81,15 +81,12 @@ def parse_union(
 
     # turn ['a b', 'c'] -> ['a', 'b', 'c']
     raw_specs = itertools.chain.from_iterable(r.split(OP_SET_UNION) for r in components)
-    union_components = []
-
-    # ['a', 'b', 'c,d'] -> union('a', 'b', intersection('c', 'd'))
-    for raw_spec in raw_specs:
-        union_components.append(
-            SelectionIntersection(
-                raw_spec.split(OP_SET_INTERSECTION),
-            )
+    union_components = [
+        SelectionIntersection(
+            raw_spec.split(OP_SET_INTERSECTION),
         )
+        for raw_spec in raw_specs
+    ]
     return SelectionUnion(
         union_components,
     )
@@ -202,22 +199,19 @@ class SelectorPlan:
             yield id
 
             if self.children:
-                if self.children_levels is None:
-                    children = nodeGraph.get_descendants(id)
-                else:
-                    children = nodeGraph.get_successors(id, self.children_levels)
-                yield from children
-
+                yield from nodeGraph.get_descendants(
+                    id
+                ) if self.children_levels is None else nodeGraph.get_successors(
+                    id, self.children_levels
+                )
             if self.parents:
-                if self.parents_levels is None:
-                    parents = nodeGraph.get_ancestors(id)
-                else:
-                    parents = nodeGraph.get_predecessors(id, self.parents_levels)
-                yield from parents
-
+                yield from nodeGraph.get_ancestors(
+                    id
+                ) if self.parents_levels is None else nodeGraph.get_predecessors(
+                    id, self.parents_levels
+                )
             if self.children_with_parents:
-                ids = _get_children_with_parents(id, nodeGraph)
-                yield from ids
+                yield from _get_children_with_parents(id, nodeGraph)
 
 
 def unique_ids_from_complex_selector(select, fal_dbt: FalDbt) -> List[str]:
@@ -233,10 +227,7 @@ def _to_select_type(selector: str) -> SelectType:
     if ":" in selector:
         return SelectType.COMPLEX
     else:
-        if _is_script_node(selector):
-            return SelectType.SCRIPT
-        else:
-            return SelectType.MODEL
+        return SelectType.SCRIPT if _is_script_node(selector) else SelectType.MODEL
 
 
 def _is_script_node(node_name: str) -> bool:
@@ -253,8 +244,7 @@ class SelectorGraphOp:
         ), 'rest must be in regex. Use `re.compile("something(?P<rest>.*)")`'
 
     def _select(self, selector: str, group: Union[str, int]) -> Optional[str]:
-        match = self._regex.match(selector)
-        if match:
+        if match := self._regex.match(selector):
             return match.group(group)
 
     def match(self, selector: str) -> bool:
@@ -262,15 +252,12 @@ class SelectorGraphOp:
 
     def rest(self, selector: str) -> str:
         rest = self._select(selector, "rest")
-        if rest is not None:
-            return rest
-        return selector
+        return rest if rest is not None else selector
 
 
 class SelectorGraphOpDepth(SelectorGraphOp):
     def depth(self, selector: str) -> Optional[int]:
-        depth = self._select(selector, "depth")
-        if depth:
+        if depth := self._select(selector, "depth"):
             return int(depth)
 
 

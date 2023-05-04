@@ -46,7 +46,7 @@ def create_hook(raw_hook: Any, default_environment_name: Optional[str] = None) -
         raise ValueError(f"Unrecognized hook value: {raw_hook}")
 
     if "path" not in raw_hook:
-        raise ValueError(f"A hook must specify path.")
+        raise ValueError("A hook must specify path.")
 
     environment_name = raw_hook.get("environment", default_environment_name)
     if environment_name and not _is_local_environment(environment_name):

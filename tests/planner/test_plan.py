@@ -34,7 +34,7 @@ def test_planner_disabled_chunking(graph_info):
         for maybe_subgraph in new_graph.nodes
         if isinstance(maybe_subgraph, nx.DiGraph)
     ]
-    assert len(subgraphs) == 0
+    assert not subgraphs
 
 
 @pytest.mark.parametrize(

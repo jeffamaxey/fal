@@ -22,7 +22,7 @@ def test_scheduler():
 
     # When both A and C are still running, the scheduler shouldn't
     # yield anything.
-    assert len(list(scheduler.iter_available_groups())) == 0
+    assert not list(scheduler.iter_available_groups())
     assert_running(scheduler, "A", "C")
 
     # But when A is unblocked, it can successfully yield B
@@ -32,7 +32,7 @@ def test_scheduler():
     assert_running(scheduler, "B", "C")
 
     # The rest of the graph is still blocked
-    assert len(list(scheduler.iter_available_groups())) == 0
+    assert not list(scheduler.iter_available_groups())
 
     # When C is done, it should yield D
     scheduler.finish(group_C, SUCCESS)
@@ -105,7 +105,7 @@ def test_scheduler_error_handling():
     # When D is done, we won't have any more tasks to continue
     # since E and F rrequires B which just failed.
     scheduler.finish(group_D, SUCCESS)
-    assert len(list(scheduler.iter_available_groups())) == 0
+    assert not list(scheduler.iter_available_groups())
 
     # Ensure that only B has failed.
     assert_failed(scheduler, "B")

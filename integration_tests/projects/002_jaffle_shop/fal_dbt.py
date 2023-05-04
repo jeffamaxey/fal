@@ -4,13 +4,8 @@ from _fal_testing import create_file
 
 from faldbt.project import DbtGenericTest, DbtSingularTest
 
-project_dir = "."
-if len(sys.argv) >= 2:
-    project_dir = sys.argv[1]
-profiles_dir = "~/.dbt"
-if len(sys.argv) >= 3:
-    profiles_dir = sys.argv[2]
-
+project_dir = sys.argv[1] if len(sys.argv) >= 2 else "."
+profiles_dir = sys.argv[2] if len(sys.argv) >= 3 else "~/.dbt"
 print(f"project_dir={project_dir}, profiles_dir={profiles_dir}")
 
 faldbt = FalDbt(project_dir=project_dir, profiles_dir=profiles_dir)

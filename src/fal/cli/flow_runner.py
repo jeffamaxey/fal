@@ -68,10 +68,11 @@ def _mark_dbt_nodes_status(
     fal_dbt: FalDbt, status: NodeStatus, dbt_node: Optional[str] = None
 ):
     for model in fal_dbt.models:
-        if dbt_node is not None:
-            if model.unique_id == dbt_node:
-                model.status = status
-        else:
+        if (
+            dbt_node is not None
+            and model.unique_id == dbt_node
+            or dbt_node is None
+        ):
             model.status = status
 
 

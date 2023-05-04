@@ -91,7 +91,7 @@ def generate_protocols(file, class_name):
 
         protocols.append(
             ast.ClassDef(
-                name="_" + method.name.title(),
+                name=f"_{method.name.title()}",
                 bases=[ast.Name(id="Protocol")],
                 body=[call_function],
                 decorator_list=[],
